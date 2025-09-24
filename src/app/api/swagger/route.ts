@@ -1,4 +1,5 @@
 // app/api/swagger/route.ts
+import { url } from 'inspector';
 import { NextResponse } from 'next/server';
 
 // Tu especificación OpenAPI / Swagger mínima
@@ -34,8 +35,10 @@ const swaggerSpec = {
                 type: 'object',
                 properties: {
                   title: { type: 'string' },
-                  completed: { type: 'boolean' },
-                  link: { type: 'string' },
+                  url: { type: 'string' },
+                  dominio: { type: 'string' },
+                  userAgent: { type: 'string' },
+                  referrer: { type: 'string' },
                 },
               },
             },

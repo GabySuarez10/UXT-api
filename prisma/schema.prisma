@@ -10,7 +10,10 @@ datasource db {
 model Todo {
   id        String   @id @default(cuid())
   title     String
-  completed Boolean  @default(false)
-  createdAt DateTime @default(now())
-  link      String
+  url       String
+  dominio   String
+  timestamp DateTime @default(now())
+  userAgent String
+  referrer  String
+
 }

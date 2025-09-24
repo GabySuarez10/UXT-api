@@ -3,14 +3,32 @@ import { NextResponse } from "next/server";
 import { swaggerSpec } from '@/lib/swagger';
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { link } from "fs";
+import { url } from "inspector";
 
+// función que crea las cabeceras CORS
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*', // cualquier origen
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+}
 
+// Manejo del preflight (OPTIONS)
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders(),
+  });
+}
 // Esquema de validación con Zod
 const createTodoSchema = z.object({
   title: z.string().min(1, "El título es obligatorio"),
-  link: z.string().min(1, "El link es obligatorio"),
-  completed: z.boolean().optional(),
+  url: z.string().min(1, "El url es obligatorio"),   
+  dominio: z.string().min(1, "El domnio es obligatorio"),
+  userAgent: z.string().min(1, "no se pero es obligatorio"),
+  referrer: z.string().min(1, "tampoco se pero es obligatorio"),
+  
 });
 
 /**
@@ -19,7 +37,7 @@ const createTodoSchema = z.object({
  *   get:
  *     summary: Lista todos los todos
  *     responses:
- *       200:
+ *       200:""
  *         description: Lista de todos
  */
 // --- GET /api/todos ---
@@ -28,7 +46,10 @@ export async function GET() {
     const todos = await prisma.todo.findMany({
       orderBy: { id: 'desc' },
     });
-    return NextResponse.json(todos);
+    return NextResponse.json(todos, { status: 200, headers: {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+  },} );
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Error al obtener todos' }, { status: 500 });
@@ -76,8 +97,12 @@ export async function POST(request: Request) {
   const data = result.data;
 
   const todo = await prisma.todo.create({
-    data: { title: data.title, completed: data.completed ?? false, link: data.link},
+    data: { title: data.title, url: data.url, dominio: data.dominio, timestamp: new Date(), userAgent: data.userAgent, referrer: data.referrer },
   });
 
-  return NextResponse.json(todo, { status: 201 });
+  return NextResponse.json(todo, {status: 200,
+  headers: {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+  },});
 }

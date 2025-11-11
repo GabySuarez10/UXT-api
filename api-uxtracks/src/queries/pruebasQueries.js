@@ -4,7 +4,8 @@ import  pool  from "@/lib/db";
 
 // Obtener todas las pruebas
 export async function getPruebas() {
-  const result = await pool.query("SELECT * FROM pruebas1 ORDER BY id ASC");
+  const result = await pool.query("SELECT id, title, url, dominio, userAgent, referrer FROM pruebas1 ORDER BY id ASC");
+  //console.log(result.rows);
   return result.rows;
 }
 

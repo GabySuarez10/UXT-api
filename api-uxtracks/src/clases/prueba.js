@@ -1,7 +1,8 @@
 // src/clases/prueba.js
 export class Prueba {
-  constructor(id, title, url, dominio, userAgent, referrer) {
-    this.id = id;
+  constructor(uid, recurrente, title, url, dominio, userAgent, referrer) {
+    this.uid = uid;
+    this.recurrente = recurrente;
     this.title = title;
     this.url = url;
     this.dominio = dominio;

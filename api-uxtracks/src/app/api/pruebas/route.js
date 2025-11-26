@@ -15,6 +15,10 @@
  *           schema:
  *             type: object
  *             properties:
+ *               uid:
+ *                 type: string
+ *               recurrente:
+ *                  type: boolean
  *               title:
  *                 type: string
  *               url:

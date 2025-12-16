@@ -2,7 +2,7 @@
 // src/controladores/pruebasController.js
 import { getPruebas, createPrueba } from "@/queries/pruebasQueries.js";
 import { updatePrueba } from "@/queries/pruebasQueries.js";
-import { Prueba } from "@/clases/Prueba";
+import { Prueba } from "@/clases/prueba";
 
 export class PruebasController  {
   static async listar() {

@@ -1,5 +1,5 @@
 import { getUsers, createUser } from "@/queries/userQueries";
-import { User } from "@/clases/User";
+import { User } from "@/clases/user";
 
 export class UserController {
   static async listarUsuarios() {

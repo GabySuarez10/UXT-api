@@ -23,5 +23,5 @@ export function middleware(req) {
 
 // 🔍 Solo aplica a las rutas que comiencen con /api/
 export const config = {
-  matcher: "/api/:path*",
+  matcher: "/rutas/:path*",
 };

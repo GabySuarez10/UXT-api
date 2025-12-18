@@ -10,10 +10,10 @@ const options = {
     },
     servers: [
       {
-        //url: "http://localhost:3000/rutas",
-        url: "https://uxtapitemp.onrender.com/rutas",
-        //description: "Servidor local",
-        description: "Servidor remoto",
+        url: "http://localhost:3000/rutas",
+        //url: "https://uxtapitemp.onrender.com/rutas",
+        description: "Servidor local",
+        //description: "Servidor remoto",
       },
     ],
   },

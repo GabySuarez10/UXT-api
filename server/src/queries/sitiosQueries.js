@@ -1,0 +1,76 @@
+import pool from "@/lib/db";
+
+// Obtener todas los sitios (sin filtro)
+export async function getSitios() {
+  try {
+    const result = await pool.query(
+      `SELECT id, usuario, titulo, url, 
+       ultimarevision AT TIME ZONE 'America/Bogota' as ultimarevision_local,
+       fechainicio AT TIME ZONE 'America/Bogota' as fechainicio_local  FROM sitios ORDER BY fechainicio DESC`
+    );
+    return result.rows;
+  } catch (error) {
+    console.error("Error en getSitios:", error);
+    throw error;
+  }
+}
+
+// Obtener sitios por usuario específico
+export async function getSitiosPorUsuario(usuario) {
+  try {
+    console.log(`Query: buscando sitios para usuario: ${usuario}`);
+    
+    const result = await pool.query(
+      `SELECT id, usuario, titulo, url, 
+       ultimarevision AT TIME ZONE 'America/Bogota' as ultimarevision_local,
+       fechainicio AT TIME ZONE 'America/Bogota' as fechainicio_local FROM sitios 
+       WHERE usuario = $1 
+       ORDER BY fechainicio DESC`,
+      [usuario]
+    );
+    
+    console.log(`Resultado: ${result.rows.length} sitios encontrados`);
+    return result.rows;
+  } catch (error) {
+    console.error(`Error en getSitiosPorUsuario para usuario ${usuario}:`, error);
+    throw error;
+  }
+}
+
+// Crear un nuevo sitio
+export async function createSitio({ usuario, titulo, url }) {
+  try {
+    const result = await pool.query(
+      `INSERT INTO sitios (usuario, titulo, url)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [usuario, titulo, url]
+    );
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error en createSitio:", error);
+    throw error;
+  }
+}
+
+export async function updateSitio({ ultimaRevision, url }) {
+  try {
+    const result = await pool.query(
+      `UPDATE sitios
+       SET ultimaRevision = $2
+       WHERE url = $1
+       RETURNING *`,
+      [url, ultimaRevision]
+    );
+    
+    if (result.rows.length === 0) {
+      throw new Error(`No se encontró un sitio con URL: ${url}`);
+    }
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error en updateSitio:", error);
+    throw error;
+  }
+}

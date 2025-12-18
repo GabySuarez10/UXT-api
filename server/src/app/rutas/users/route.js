@@ -17,9 +17,11 @@
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               username:
  *                 type: string
  *               email:
+ *                 type: string
+ *               password:
  *                 type: string
  *     responses:
  *       201:

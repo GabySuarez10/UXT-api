@@ -85,13 +85,11 @@ export class SitiosController  {
       sitioActualizado.fechaInicio
     );
   }
- static async deleteSitio(data) {
-    if (!data.url) {
+ static async deleteSitio(url) {
+    if (!url) {
       throw new Error("El campo 'url' es requerido");
     }
-    console.log(`data.url: ${data.url}`);
-    console.log(`data: ${data}`);
-    const sitioEliminado = await deleteSitioPorUrl(data.url);
+    const sitioEliminado = await deleteSitioPorUrl(url);
     
     return new Sitio(
       sitioEliminado.id, 

@@ -11,7 +11,7 @@ const options = {
     servers: [
       {
         //url: "http://localhost:3000/rutas",
-        url: "https://uxt-api.onrender.com/rutas",
+        url: "https://uxt-api-1.onrender.com/rutas",
         //description: "Servidor local",
         description: "Servidor remoto",
       },

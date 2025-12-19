@@ -74,3 +74,23 @@ export async function updateSitio({ ultimaRevision, url }) {
     throw error;
   }
 }
+
+ export async function deleteSitioPorUrl(url) {
+  try {
+    const result = await pool.query(
+      `DELETE FROM sitios
+       WHERE url = $1
+       RETURNING *`,
+      [url]
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error(`No se encontró un sitio con URL: ${url}`);
+    }
+
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error en deleteSitioPorUrl:", error);
+    throw error;
+  }
+}

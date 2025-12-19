@@ -79,6 +79,25 @@
  *         description: Sitio actualizado exitosamente
  *       400:
  *         description: Datos incompletos
+ * 
+ *   delete:
+ *     summary: Elimina un sitio web monitoreado por su URL
+ *     tags: [Sitios]
+ *     parameters:
+ *       - in: query
+ *         name: url
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: URL del sitio web a eliminar
+ *     responses:
+ *       200:
+ *         description: Sitio eliminado exitosamente
+ *       400:
+ *         description: URL no proporcionada
+ *       404:
+ *         description: Sitio no encontrado
+ *
  */
 
 import { NextResponse } from "next/server";
@@ -134,6 +153,30 @@ export async function PUT(req) {
     return NextResponse.json(
       { error: error.message || "Error al actualizar sitio" },
       { status: 400 }
+    );
+  }
+}
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const url = searchParams.get('url');
+
+    if (!url) {
+      return NextResponse.json(
+        { error: "La URL del sitio es obligatoria" },
+        { status: 400 }
+      );
+    }
+
+    const sitioEliminado = await SitiosController.deleteSitio(url);
+
+    return NextResponse.json(sitioEliminado);
+  } catch (error) {
+    console.error("Error en DELETE /sitios:", error);
+
+    return NextResponse.json(
+      { error: error.message || "Error al eliminar sitio" },
+      { status: 500 }
     );
   }
 }

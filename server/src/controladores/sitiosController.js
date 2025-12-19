@@ -1,4 +1,4 @@
-import { getSitios, createSitio, getSitiosPorUsuario, updateSitio } from "@/queries/sitiosQueries.js";
+import { getSitios, createSitio, getSitiosPorUsuario, updateSitio, deleteSitioPorUrl } from "@/queries/sitiosQueries.js";
 import { Sitio } from "@/clases/sitio";
 
 export class SitiosController  {
@@ -83,6 +83,22 @@ export class SitiosController  {
       sitioActualizado.url, 
       sitioActualizado.ultimaRevision, 
       sitioActualizado.fechaInicio
+    );
+  }
+ static async deleteSitio(data) {
+    if (!data.url) {
+      throw new Error("El campo 'url' es requerido");
+    }
+    
+    const sitioEliminado = await deleteSitioPorUrl(data.url);
+    
+    return new Sitio(
+      sitioEliminado.id, 
+      sitioEliminado.usuario, 
+      sitioEliminado.titulo, 
+      sitioEliminado.url, 
+      sitioEliminado.ultimaRevision, 
+      sitioEliminado.fechaInicio
     );
   }
 };

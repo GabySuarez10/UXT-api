@@ -167,7 +167,7 @@ export async function DELETE(request) {
         { status: 400 }
       );
     }
-
+    console.log(`DELETE /sitios - URL: ${url}`);
     const sitioEliminado = await SitiosController.deleteSitio(url);
 
     return NextResponse.json(sitioEliminado);

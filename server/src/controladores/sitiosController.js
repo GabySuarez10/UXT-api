@@ -89,7 +89,8 @@ export class SitiosController  {
     if (!data.url) {
       throw new Error("El campo 'url' es requerido");
     }
-    
+    console.log(`data.url: ${data.url}`);
+    console.log(`data: ${data}`);
     const sitioEliminado = await deleteSitioPorUrl(data.url);
     
     return new Sitio(

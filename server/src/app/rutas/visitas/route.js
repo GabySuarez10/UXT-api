@@ -91,13 +91,13 @@ import { VisitasController } from "@/controladores/visitasController.js";
 
 export async function GET(request) {
   try {
-    // Obtener parámetros de la URL
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');
-    
-    console.log(`GET /visitas - URL filter: ${url}`);
-    
-    const visitas = await VisitasController.listar(url);
+    const tipo = searchParams.get('tipo_evento');
+
+    console.log(`GET /visitas - URL filter: ${url}, tipo: ${tipo}`);
+
+    const visitas = await VisitasController.listar(url, tipo);
     return NextResponse.json(visitas);
   } catch (error) {
     console.error("Error en GET /visitas:", error);
@@ -112,37 +112,51 @@ export async function POST(req) {
   try {
     const data = await req.json();
     console.log("Datos recibidos en POST /visitas:", data);
-    
-    // Verificar si es una visita nueva o recurrente
-    const visitaExistente = await checkVisitaReciente(data.uid, data.url);
-    let statusCode = 200;
-    
-    if (!visitaExistente) {
-      statusCode = 201; // Nueva visita
-    } else if (!visitaExistente.esReciente) {
-      statusCode = 200; // Visita actualizada como recurrente
+
+    const { tipo_evento } = data;
+
+    // ── Clic ──────────────────────────────────────────────────────────────
+    if (tipo_evento === 'clic') {
+      const clic = await VisitasController.registrarClic(data);
+      return NextResponse.json(
+        { ...clic.toJSON(), mensaje: "Clic registrado" },
+        { status: 201 }
+      );
     }
-    // Si es reciente (menos de 1 minuto), status 200 pero no se crea/actualiza
-    
+
+    // ── Scroll ────────────────────────────────────────────────────────────
+    if (tipo_evento === 'scroll') {
+      const scroll = await VisitasController.registrarScroll(data);
+      return NextResponse.json(
+        { ...scroll.toJSON(), mensaje: "Scroll registrado" },
+        { status: 201 }
+      );
+    }
+
+    // ── Visita (comportamiento original) ──────────────────────────────────
+    const visitaExistente = await checkVisitaReciente(data.uid, data.url);
+    const statusCode = !visitaExistente ? 201 : 200;
+
     const visita = await VisitasController.crear(data);
-    
+
     return NextResponse.json({
       ...visita.toJSON(),
-      mensaje: statusCode === 201 ? "Nueva visita registrada" : 
-               visitaExistente && !visitaExistente.esReciente ? "Visita actualizada como recurrente" : 
-               "Visita reciente, no se registró nueva visita"
+      mensaje: statusCode === 201
+        ? "Nueva visita registrada"
+        : visitaExistente && !visitaExistente.esReciente
+          ? "Visita actualizada como recurrente"
+          : "Visita reciente, no se registró nueva visita"
     }, { status: statusCode });
-    
+
   } catch (error) {
     console.error("Error en POST /visitas:", error);
     return NextResponse.json(
-      { error: error.message || "Error al procesar visita" },
+      { error: error.message || "Error al procesar evento" },
       { status: 400 }
     );
   }
 }
 
-// Función auxiliar para verificar visitas recientes
 async function checkVisitaReciente(uid, url) {
   const { checkVisitaReciente } = await import("@/queries/visitasQueries");
   return await checkVisitaReciente(uid, url);

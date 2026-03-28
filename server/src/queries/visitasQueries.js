@@ -122,6 +122,37 @@ export async function getEstadisticasVisitas(url = null) {
   }
 }
 
+// ── DASHBOARD ESTADÍSTICAS ─────────────────────────────────────────────────────
+
+export async function getEstadisticasDashboard(url) {
+  try {
+    const queryVisitas = `
+      SELECT 
+        COUNT(*) as total_visitas,
+        SUM(CASE WHEN recurrente THEN 1 ELSE 0 END) as visitas_recurrentes
+      FROM visitas
+      WHERE url = $1
+    `;
+    const visitasRes = await pool.query(queryVisitas, [url]);
+
+    const queryClics = `SELECT COUNT(*) as total_clics FROM clics WHERE url = $1`;
+    const clicsRes = await pool.query(queryClics, [url]);
+
+    const queryScrolls = `SELECT COUNT(*) as total_scrolls FROM scrolls WHERE url = $1`;
+    const scrollsRes = await pool.query(queryScrolls, [url]);
+
+    return {
+      visitas: parseInt(visitasRes.rows[0]?.total_visitas || 0, 10),
+      recurrentes: parseInt(visitasRes.rows[0]?.visitas_recurrentes || 0, 10),
+      clics: parseInt(clicsRes.rows[0]?.total_clics || 0, 10),
+      scrolls: parseInt(scrollsRes.rows[0]?.total_scrolls || 0, 10),
+    };
+  } catch (error) {
+    console.error("Error en getEstadisticasDashboard:", error);
+    throw error;
+  }
+}
+
 // ── CLICS ────────────────────────────────────────────────────────────────────
 
 export async function getClics(url = null) {

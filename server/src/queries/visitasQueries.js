@@ -124,31 +124,126 @@ export async function getEstadisticasVisitas(url = null) {
 
 // ── DASHBOARD ESTADÍSTICAS ─────────────────────────────────────────────────────
 
-export async function getEstadisticasDashboard(url) {
+export async function getEstadisticasDashboard(url, startDate = null, endDate = null) {
   try {
+    // ── Build date conditions ──
+    const visitaDateCol = 'created_at';
+    const clicDateCol = 'created_at';
+    const scrollDateCol = 'created_at';
+
+    let visitaDateFilter = '';
+    let clicDateFilter = '';
+    let scrollDateFilter = '';
+    const visitaParams = [url];
+    const clicParams = [url];
+    const scrollParams = [url];
+
+    if (startDate) {
+      visitaParams.push(startDate);
+      visitaDateFilter += ` AND (${visitaDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${visitaParams.length}`;
+      clicParams.push(startDate);
+      clicDateFilter += ` AND (${clicDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${clicParams.length}`;
+      scrollParams.push(startDate);
+      scrollDateFilter += ` AND (${scrollDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${scrollParams.length}`;
+    }
+    if (endDate) {
+      visitaParams.push(endDate);
+      visitaDateFilter += ` AND (${visitaDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${visitaParams.length}`;
+      clicParams.push(endDate);
+      clicDateFilter += ` AND (${clicDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${clicParams.length}`;
+      scrollParams.push(endDate);
+      scrollDateFilter += ` AND (${scrollDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${scrollParams.length}`;
+    }
+
+    // ── Total visitas + recurrentes ──
     const queryVisitas = `
       SELECT 
         COUNT(*) as total_visitas,
         SUM(CASE WHEN recurrente THEN 1 ELSE 0 END) as visitas_recurrentes
       FROM visitas
-      WHERE url = $1
+      WHERE url = $1${visitaDateFilter}
     `;
-    const visitasRes = await pool.query(queryVisitas, [url]);
+    const visitasRes = await pool.query(queryVisitas, visitaParams);
 
-    const queryClics = `SELECT COUNT(*) as total_clics FROM clics WHERE url = $1`;
-    const clicsRes = await pool.query(queryClics, [url]);
+    // ── Total clics ──
+    const queryClics = `SELECT COUNT(*) as total_clics FROM clics WHERE url = $1${clicDateFilter}`;
+    const clicsRes = await pool.query(queryClics, clicParams);
 
-    const queryScrolls = `SELECT COUNT(*) as total_scrolls FROM scrolls WHERE url = $1`;
-    const scrollsRes = await pool.query(queryScrolls, [url]);
+    // ── Total scrolls ──
+    const queryScrolls = `SELECT COUNT(*) as total_scrolls FROM scrolls WHERE url = $1${scrollDateFilter}`;
+    const scrollsRes = await pool.query(queryScrolls, scrollParams);
+
+    // ── Average scroll depth: AVG(porcentaje_scroll) from scrolls table ──
+    const queryAvgScroll = `
+      SELECT COALESCE(ROUND(AVG(porcentaje_scroll)), 0) as avg_scroll
+      FROM scrolls WHERE url = $1${scrollDateFilter}
+    `;
+    const avgScrollRes = await pool.query(queryAvgScroll, scrollParams);
+    const porcentajeScroll = parseInt(avgScrollRes.rows[0]?.avg_scroll || 0, 10);
 
     return {
       visitas: parseInt(visitasRes.rows[0]?.total_visitas || 0, 10),
       recurrentes: parseInt(visitasRes.rows[0]?.visitas_recurrentes || 0, 10),
       clics: parseInt(clicsRes.rows[0]?.total_clics || 0, 10),
       scrolls: parseInt(scrollsRes.rows[0]?.total_scrolls || 0, 10),
+      porcentajeScroll,
     };
   } catch (error) {
     console.error("Error en getEstadisticasDashboard:", error);
+    throw error;
+  }
+}
+
+// ── TENDENCIAS DIARIAS (para gráficas de línea) ────────────────────────────────
+
+export async function getTendenciasDiarias(url, startDate, endDate) {
+  try {
+    const params = [url];
+    let dateFilter = '';
+
+    if (startDate) {
+      params.push(startDate);
+      dateFilter += ` AND (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${params.length}`;
+    }
+    if (endDate) {
+      params.push(endDate);
+      dateFilter += ` AND (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${params.length}`;
+    }
+
+    const queryClics = `
+      SELECT (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
+      FROM clics WHERE url = $1${dateFilter}
+      GROUP BY fecha ORDER BY fecha
+    `;
+    const queryScrolls = `
+      SELECT (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
+      FROM scrolls WHERE url = $1${dateFilter}
+      GROUP BY fecha ORDER BY fecha
+    `;
+    const queryVisitas = `
+      SELECT (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
+      FROM visitas WHERE url = $1${dateFilter}
+      GROUP BY fecha ORDER BY fecha
+    `;
+
+    const [clicsRes, scrollsRes, visitasRes] = await Promise.all([
+      pool.query(queryClics, params),
+      pool.query(queryScrolls, params),
+      pool.query(queryVisitas, params),
+    ]);
+
+    const format = (rows) => rows.map(r => ({
+      fecha: r.fecha,
+      total: parseInt(r.total, 10),
+    }));
+
+    return {
+      clics: format(clicsRes.rows),
+      scrolls: format(scrollsRes.rows),
+      visitas: format(visitasRes.rows),
+    };
+  } catch (error) {
+    console.error("Error en getTendenciasDiarias:", error);
     throw error;
   }
 }

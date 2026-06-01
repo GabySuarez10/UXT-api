@@ -61,7 +61,7 @@
  *     responses:
  *       201:
  *         description: Sitio añadido exitosamente
- * 
+ *
  *   put:
  *     summary: Establece la última revisión de un sitio web
  *     tags: [Sitios]
@@ -79,7 +79,7 @@
  *         description: Sitio actualizado exitosamente
  *       400:
  *         description: Datos incompletos
- * 
+ *
  *   delete:
  *     summary: Elimina un sitio web monitoreado por su URL
  *     tags: [Sitios]
@@ -107,16 +107,16 @@ export async function GET(request) {
   try {
     // Obtener parámetros de la URL
     const { searchParams } = new URL(request.url);
-    const usuario = searchParams.get('usuario');
-    
+    const usuario = searchParams.get("usuario");
+
     // Si hay parámetro usuario, filtrar por usuario
     if (usuario) {
       console.log(`Buscando sitios para el usuario: ${usuario}`);
       const sitios = await SitiosController.listarPorUsuario(usuario);
-      console.log(sitios)
+      console.log(sitios);
       return NextResponse.json(sitios);
     }
-    
+
     // Si no hay parámetro, devolver todos los sitios
     const sitios = await SitiosController.listar();
     return NextResponse.json(sitios);
@@ -124,7 +124,7 @@ export async function GET(request) {
     console.error("Error en GET /sitios:", error);
     return NextResponse.json(
       { error: error.message || "Error al obtener sitios" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -138,7 +138,7 @@ export async function POST(req) {
     console.error("Error en POST /sitios:", error);
     return NextResponse.json(
       { error: error.message || "Error al crear sitio" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }
@@ -152,19 +152,19 @@ export async function PUT(req) {
     console.error("Error en PUT /sitios:", error);
     return NextResponse.json(
       { error: error.message || "Error al actualizar sitio" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const url = searchParams.get('url');
+    const url = searchParams.get("url");
 
     if (!url) {
       return NextResponse.json(
         { error: "La URL del sitio es obligatoria" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     console.log(`DELETE /sitios - URL: ${url}`);
@@ -176,7 +176,7 @@ export async function DELETE(request) {
 
     return NextResponse.json(
       { error: error.message || "Error al eliminar sitio" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

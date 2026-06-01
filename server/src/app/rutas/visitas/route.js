@@ -92,8 +92,8 @@ import { VisitasController } from "@/controladores/visitasController.js";
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const url = searchParams.get('url');
-    const tipo = searchParams.get('tipo_evento');
+    const url = searchParams.get("url");
+    const tipo = searchParams.get("tipo_evento");
 
     console.log(`GET /visitas - URL filter: ${url}, tipo: ${tipo}`);
 
@@ -103,7 +103,7 @@ export async function GET(request) {
     console.error("Error en GET /visitas:", error);
     return NextResponse.json(
       { error: error.message || "Error al obtener visitas" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -116,20 +116,20 @@ export async function POST(req) {
     const { tipo_evento } = data;
 
     // ── Clic ──────────────────────────────────────────────────────────────
-    if (tipo_evento === 'clic') {
+    if (tipo_evento === "clic") {
       const clic = await VisitasController.registrarClic(data);
       return NextResponse.json(
         { ...clic.toJSON(), mensaje: "Clic registrado" },
-        { status: 201 }
+        { status: 201 },
       );
     }
 
     // ── Scroll ────────────────────────────────────────────────────────────
-    if (tipo_evento === 'scroll') {
+    if (tipo_evento === "scroll") {
       const scroll = await VisitasController.registrarScroll(data);
       return NextResponse.json(
         { ...scroll.toJSON(), mensaje: "Scroll registrado" },
-        { status: 201 }
+        { status: 201 },
       );
     }
 
@@ -139,20 +139,23 @@ export async function POST(req) {
 
     const visita = await VisitasController.crear(data);
 
-    return NextResponse.json({
-      ...visita.toJSON(),
-      mensaje: statusCode === 201
-        ? "Nueva visita registrada"
-        : visitaExistente && !visitaExistente.esReciente
-          ? "Visita actualizada como recurrente"
-          : "Visita reciente, no se registró nueva visita"
-    }, { status: statusCode });
-
+    return NextResponse.json(
+      {
+        ...visita.toJSON(),
+        mensaje:
+          statusCode === 201
+            ? "Nueva visita registrada"
+            : visitaExistente && !visitaExistente.esReciente
+              ? "Visita actualizada como recurrente"
+              : "Visita reciente, no se registró nueva visita",
+      },
+      { status: statusCode },
+    );
   } catch (error) {
     console.error("Error en POST /visitas:", error);
     return NextResponse.json(
       { error: error.message || "Error al procesar evento" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

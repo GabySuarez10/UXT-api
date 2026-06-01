@@ -1,78 +1,89 @@
-import { getUsers, createUser, getUserByName, updateFirstTime, deactivateUser, getUserByEmail, saveRecoveryCode, clearRecoveryCode, updatePasswordByEmail } from "@/queries/userQueries";
+import {
+  getUsers,
+  createUser,
+  getUserByName,
+  updateFirstTime,
+  deactivateUser,
+  getUserByEmail,
+  saveRecoveryCode,
+  clearRecoveryCode,
+  updatePasswordByEmail,
+} from "@/queries/userQueries";
 import { User } from "@/clases/user";
 import { sendRecoveryEmail } from "@/lib/emailService";
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 export class UserController {
   static async listarUsuarios() {
     const usuarios = await getUsers();
-    return usuarios.map(u => new User(u.id, u.name, u.email));
+    return usuarios.map((u) => new User(u.id, u.name, u.email));
   }
 
   static async crearUsuario(data) {
     if (!data.username || !data.email || !data.password) {
       throw new Error("Nombre, correo y contraseña son obligatorios");
     }
-    
+
     // Hash de la contraseña antes de guardar
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const nuevoUsuario = await createUser({
       name: data.username,
       email: data.email,
-      password: hashedPassword
+      password: hashedPassword,
     });
     return new User(nuevoUsuario.id, nuevoUsuario.name, nuevoUsuario.email);
   }
 
   static async loggearUsuario(data) {
-  const { username, password } = data;
-  
-  // Validar datos de entrada
-  if (!username || !password) {
-    throw new Error("Nombre y contraseña son obligatorios");
-  }
-  
-  // Obtener usuario de la base de datos
-  const usuario = await getUserByName(username);
-  if (!usuario) {
-    throw new Error("Credenciales inválidas");
-  }
-  
-  // Verificar contraseña
-  const passwordMatch = await bcrypt.compare(password, String(usuario.contraseña));
-  
-  if (!passwordMatch) {
-    throw new Error("Credenciales inválidas");
-  }
-  
-  // Crear payload del token
-  const payload = {
-    id: usuario.id,
-    name: usuario.nombre,
-    email: usuario.email
-  };
-  
-  // Generar token JWT
-  const token = jwt.sign(
-    payload,
-    process.env.JWT_SECRET || 'secreto-temporal',
-    { expiresIn: '24h' }
-  );
-  
-  return {
-    token,
-    user: {
+    const { username, password } = data;
+
+    // Validar datos de entrada
+    if (!username || !password) {
+      throw new Error("Nombre y contraseña son obligatorios");
+    }
+
+    // Obtener usuario de la base de datos
+    const usuario = await getUserByName(username);
+    if (!usuario) {
+      throw new Error("Credenciales inválidas");
+    }
+
+    // Verificar contraseña
+    const passwordMatch = await bcrypt.compare(
+      password,
+      String(usuario.contraseña),
+    );
+
+    if (!passwordMatch) {
+      throw new Error("Credenciales inválidas");
+    }
+
+    // Crear payload del token
+    const payload = {
       id: usuario.id,
       name: usuario.nombre,
       email: usuario.email,
-      active: usuario.activo,
-      firstTime: usuario.primeravez
-    }
-  };
+    };
 
+    // Generar token JWT
+    const token = jwt.sign(
+      payload,
+      process.env.JWT_SECRET || "secreto-temporal",
+      { expiresIn: "24h" },
+    );
 
+    return {
+      token,
+      user: {
+        id: usuario.id,
+        name: usuario.nombre,
+        email: usuario.email,
+        active: usuario.activo,
+        firstTime: usuario.primeravez,
+      },
+    };
   }
   static async actualizarPrimerizo(data) {
     const name = data.nombre;
@@ -109,7 +120,9 @@ export class UserController {
     const usuario = await getUserByEmail(email);
     if (!usuario) {
       // Por seguridad, no revelamos si el email existe o no
-      return { message: "Si el correo existe, recibirás un código de verificación" };
+      return {
+        message: "Si el correo existe, recibirás un código de verificación",
+      };
     }
 
     // Generar código de 6 dígitos
@@ -124,7 +137,9 @@ export class UserController {
     // Enviar email
     await sendRecoveryEmail(email, code);
 
-    return { message: "Si el correo existe, recibirás un código de verificación" };
+    return {
+      message: "Si el correo existe, recibirás un código de verificación",
+    };
   }
 
   static async verificarCodigo(data) {
@@ -186,5 +201,4 @@ export class UserController {
 
     return { message: "Contraseña restablecida exitosamente" };
   }
-
 }

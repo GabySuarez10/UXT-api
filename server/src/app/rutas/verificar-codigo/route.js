@@ -33,7 +33,7 @@ export async function POST(req) {
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Error al verificar el código" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

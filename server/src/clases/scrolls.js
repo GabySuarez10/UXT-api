@@ -1,5 +1,15 @@
 export class Scroll {
-  constructor(id, uid, url, dominio, scroll_x, scroll_y, porcentaje_scroll, timestamp, created_at) {
+  constructor(
+    id,
+    uid,
+    url,
+    dominio,
+    scroll_x,
+    scroll_y,
+    porcentaje_scroll,
+    timestamp,
+    created_at,
+  ) {
     this.id = id;
     this.uid = uid;
     this.url = url;
@@ -21,7 +31,7 @@ export class Scroll {
       scroll_y: this.scroll_y,
       porcentaje_scroll: this.porcentaje_scroll,
       timestamp: this.timestamp,
-      created_at: this.created_at
+      created_at: this.created_at,
     };
   }
 }

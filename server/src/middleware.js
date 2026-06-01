@@ -6,9 +6,15 @@ export function middleware(req) {
   // 🔓 Permitir cualquier dominio
   res.headers.set("Access-Control-Allow-Origin", "*");
   // 🔓 Permitir métodos comunes
-  res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS",
+  );
   // 🔓 Permitir encabezados personalizados
-  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization",
+  );
 
   // ⚙️ Manejar preflight (OPTIONS)
   if (req.method === "OPTIONS") {

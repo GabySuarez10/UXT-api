@@ -35,7 +35,7 @@ export async function POST(req) {
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Error al restablecer la contraseña" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

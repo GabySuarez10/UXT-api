@@ -1,5 +1,15 @@
 export class Clic {
-  constructor(id, uid, url, dominio, elemento, posicion_x, posicion_y, timestamp, created_at) {
+  constructor(
+    id,
+    uid,
+    url,
+    dominio,
+    elemento,
+    posicion_x,
+    posicion_y,
+    timestamp,
+    created_at,
+  ) {
     this.id = id;
     this.uid = uid;
     this.url = url;
@@ -21,7 +31,7 @@ export class Clic {
       posicion_x: this.posicion_x,
       posicion_y: this.posicion_y,
       timestamp: this.timestamp,
-      created_at: this.created_at
+      created_at: this.created_at,
     };
   }
 }

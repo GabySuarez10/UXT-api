@@ -1,5 +1,16 @@
 export class Visita {
-  constructor(id, uid, recurrente, title, url, dominio, userAgent, referrer, ultimavisita, created_at) {
+  constructor(
+    id,
+    uid,
+    recurrente,
+    title,
+    url,
+    dominio,
+    userAgent,
+    referrer,
+    ultimavisita,
+    created_at,
+  ) {
     this.id = id;
     this.uid = uid;
     this.recurrente = recurrente;
@@ -24,7 +35,7 @@ export class Visita {
       userAgent: this.userAgent,
       referrer: this.referrer,
       ultimavisita: this.ultimavisita,
-      created_at: this.created_at
+      created_at: this.created_at,
     };
   }
 }

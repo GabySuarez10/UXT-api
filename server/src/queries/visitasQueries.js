@@ -24,7 +24,7 @@ export async function getVisitaPorUidYUrl(uid, url) {
   try {
     const result = await pool.query(
       "SELECT * FROM visitas WHERE uid = $1 AND url = $2",
-      [uid, url]
+      [uid, url],
     );
     return result.rows[0];
   } catch (error) {
@@ -41,7 +41,7 @@ export async function createVisita(data) {
        (uid, recurrente, title, url, dominio, userAgent, referrer, ultimavisita)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
        RETURNING *`,
-      [uid, recurrente, title, url, dominio, userAgent, referrer]
+      [uid, recurrente, title, url, dominio, userAgent, referrer],
     );
     return result.rows[0];
   } catch (error) {
@@ -57,7 +57,7 @@ export async function updateVisitaRecurrente(uid, url) {
        SET recurrente = true, ultimavisita = current_timestamp
        WHERE uid = $1 AND url = $2
        RETURNING *`,
-      [uid, url]
+      [uid, url],
     );
     return result.rows[0];
   } catch (error) {
@@ -73,7 +73,7 @@ export async function checkVisitaReciente(uid, url) {
        EXTRACT(EPOCH FROM (current_timestamp - ultimavisita)) as segundos_transcurridos
        FROM visitas 
        WHERE uid = $1 AND url = $2`,
-      [uid, url]
+      [uid, url],
     );
 
     if (result.rows.length === 0) return null;
@@ -86,7 +86,7 @@ export async function checkVisitaReciente(uid, url) {
       id: visita.id,
       ultimavisita: visita.ultimavisita,
       segundosTranscurridos,
-      esReciente: segundosTranscurridos < 60
+      esReciente: segundosTranscurridos < 60,
     };
   } catch (error) {
     console.error("Error en checkVisitaReciente:", error);
@@ -124,16 +124,21 @@ export async function getEstadisticasVisitas(url = null) {
 
 // ── DASHBOARD ESTADÍSTICAS ─────────────────────────────────────────────────────
 
-export async function getEstadisticasDashboard(url, startDate = null, endDate = null) {
+export async function getEstadisticasDashboard(
+  url,
+  startDate = null,
+  endDate = null,
+) {
   try {
     // ── Build date conditions ──
-    const visitaDateCol = 'created_at';
-    const clicDateCol = 'created_at';
-    const scrollDateCol = 'created_at';
+    // ── Build date conditions ──
+    const visitaDateCol = "ultimavisita";
+    const clicDateCol = "created_at";
+    const scrollDateCol = "created_at";
 
-    let visitaDateFilter = '';
-    let clicDateFilter = '';
-    let scrollDateFilter = '';
+    let visitaDateFilter = "";
+    let clicDateFilter = "";
+    let scrollDateFilter = "";
     const visitaParams = [url];
     const clicParams = [url];
     const scrollParams = [url];
@@ -142,17 +147,17 @@ export async function getEstadisticasDashboard(url, startDate = null, endDate = 
       visitaParams.push(startDate);
       visitaDateFilter += ` AND (${visitaDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${visitaParams.length}`;
       clicParams.push(startDate);
-      clicDateFilter += ` AND (${clicDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${clicParams.length}`;
+      clicDateFilter += ` AND (${clicDateCol} AT TIME ZONE 'America/Bogota')::date >= $${clicParams.length}`;
       scrollParams.push(startDate);
-      scrollDateFilter += ` AND (${scrollDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${scrollParams.length}`;
+      scrollDateFilter += ` AND (${scrollDateCol} AT TIME ZONE 'America/Bogota')::date >= $${scrollParams.length}`;
     }
     if (endDate) {
       visitaParams.push(endDate);
       visitaDateFilter += ` AND (${visitaDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${visitaParams.length}`;
       clicParams.push(endDate);
-      clicDateFilter += ` AND (${clicDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${clicParams.length}`;
+      clicDateFilter += ` AND (${clicDateCol} AT TIME ZONE 'America/Bogota')::date <= $${clicParams.length}`;
       scrollParams.push(endDate);
-      scrollDateFilter += ` AND (${scrollDateCol} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${scrollParams.length}`;
+      scrollDateFilter += ` AND (${scrollDateCol} AT TIME ZONE 'America/Bogota')::date <= $${scrollParams.length}`;
     }
 
     // ── Total visitas + recurrentes ──
@@ -179,7 +184,10 @@ export async function getEstadisticasDashboard(url, startDate = null, endDate = 
       FROM scrolls WHERE url = $1${scrollDateFilter}
     `;
     const avgScrollRes = await pool.query(queryAvgScroll, scrollParams);
-    const porcentajeScroll = parseInt(avgScrollRes.rows[0]?.avg_scroll || 0, 10);
+    const porcentajeScroll = parseInt(
+      avgScrollRes.rows[0]?.avg_scroll || 0,
+      10,
+    );
 
     return {
       visitas: parseInt(visitasRes.rows[0]?.total_visitas || 0, 10),
@@ -198,44 +206,53 @@ export async function getEstadisticasDashboard(url, startDate = null, endDate = 
 
 export async function getTendenciasDiarias(url, startDate, endDate) {
   try {
-    const params = [url];
-    let dateFilter = '';
+    const clicScrollParams = [url];
+    const visitaParams = [url];
+    let clicScrollFilter = "";
+    let visitaFilter = "";
 
     if (startDate) {
-      params.push(startDate);
-      dateFilter += ` AND (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${params.length}`;
+      clicScrollParams.push(startDate);
+      clicScrollFilter += ` AND (created_at AT TIME ZONE 'America/Bogota')::date >= $${clicScrollParams.length}`;
+
+      visitaParams.push(startDate);
+      visitaFilter += ` AND (ultimavisita AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date >= $${visitaParams.length}`;
     }
     if (endDate) {
-      params.push(endDate);
-      dateFilter += ` AND (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${params.length}`;
+      clicScrollParams.push(endDate);
+      clicScrollFilter += ` AND (created_at AT TIME ZONE 'America/Bogota')::date <= $${clicScrollParams.length}`;
+
+      visitaParams.push(endDate);
+      visitaFilter += ` AND (ultimavisita AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date <= $${visitaParams.length}`;
     }
 
     const queryClics = `
-      SELECT (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
-      FROM clics WHERE url = $1${dateFilter}
+      SELECT (created_at AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
+      FROM clics WHERE url = $1${clicScrollFilter}
       GROUP BY fecha ORDER BY fecha
     `;
     const queryScrolls = `
-      SELECT (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
-      FROM scrolls WHERE url = $1${dateFilter}
+      SELECT (created_at AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
+      FROM scrolls WHERE url = $1${clicScrollFilter}
       GROUP BY fecha ORDER BY fecha
     `;
     const queryVisitas = `
-      SELECT (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
-      FROM visitas WHERE url = $1${dateFilter}
+      SELECT (ultimavisita AT TIME ZONE 'UTC' AT TIME ZONE 'America/Bogota')::date as fecha, COUNT(*) as total
+      FROM visitas WHERE url = $1${visitaFilter}
       GROUP BY fecha ORDER BY fecha
     `;
 
     const [clicsRes, scrollsRes, visitasRes] = await Promise.all([
-      pool.query(queryClics, params),
-      pool.query(queryScrolls, params),
-      pool.query(queryVisitas, params),
+      pool.query(queryClics, clicScrollParams),
+      pool.query(queryScrolls, clicScrollParams),
+      pool.query(queryVisitas, visitaParams),
     ]);
 
-    const format = (rows) => rows.map(r => ({
-      fecha: r.fecha,
-      total: parseInt(r.total, 10),
-    }));
+    const format = (rows) =>
+      rows.map((r) => ({
+        fecha: r.fecha,
+        total: parseInt(r.total, 10),
+      }));
 
     return {
       clics: format(clicsRes.rows),
@@ -270,13 +287,14 @@ export async function getClics(url = null) {
 
 export async function createClic(data) {
   try {
-    const { uid, url, dominio, elemento, posicion_x, posicion_y, timestamp } = data;
+    const { uid, url, dominio, elemento, posicion_x, posicion_y, timestamp } =
+      data;
     const result = await pool.query(
       `INSERT INTO clics 
        (uid, url, dominio, elemento, posicion_x, posicion_y, timestamp)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [uid, url, dominio, elemento, posicion_x, posicion_y, timestamp]
+      [uid, url, dominio, elemento, posicion_x, posicion_y, timestamp],
     );
     return result.rows[0];
   } catch (error) {
@@ -307,13 +325,21 @@ export async function getScrolls(url = null) {
 
 export async function createScroll(data) {
   try {
-    const { uid, url, dominio, scroll_x, scroll_y, porcentaje_scroll, timestamp } = data;
+    const {
+      uid,
+      url,
+      dominio,
+      scroll_x,
+      scroll_y,
+      porcentaje_scroll,
+      timestamp,
+    } = data;
     const result = await pool.query(
       `INSERT INTO scrolls 
        (uid, url, dominio, scroll_x, scroll_y, porcentaje_scroll, timestamp)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [uid, url, dominio, scroll_x, scroll_y, porcentaje_scroll, timestamp]
+      [uid, url, dominio, scroll_x, scroll_y, porcentaje_scroll, timestamp],
     );
     return result.rows[0];
   } catch (error) {

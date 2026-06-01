@@ -31,7 +31,7 @@ export async function POST(req) {
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Error al enviar el código" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

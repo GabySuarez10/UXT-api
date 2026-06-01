@@ -31,7 +31,7 @@ export async function PUT(req) {
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Error en el servidor" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

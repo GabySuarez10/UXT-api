@@ -37,12 +37,12 @@ import { getClics, getScrolls } from "@/queries/visitasQueries";
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const url = searchParams.get('url');
+    const url = searchParams.get("url");
 
     if (!url) {
       return NextResponse.json(
         { error: "El parámetro 'url' es requerido" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -56,7 +56,7 @@ export async function GET(request) {
     console.error("Error en GET /heatmaps:", error);
     return NextResponse.json(
       { error: error.message || "Error al obtener datos de heatmaps" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

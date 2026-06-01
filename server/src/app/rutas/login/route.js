@@ -54,12 +54,12 @@ export async function POST(req) {
     if (error.message === "Credenciales inválidas") {
       return NextResponse.json(
         { error: "Credenciales inválidas" },
-        { status: 401 }
+        { status: 401 },
       );
     }
     return NextResponse.json(
       { error: error.message || "Error en el servidor" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

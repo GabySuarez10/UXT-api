@@ -1,18 +1,24 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER || 'uxtracksoporte@gmail.com',
+    user: process.env.EMAIL_USER || "uxtracksoporte@gmail.com",
     pass: process.env.EMAIL_PASSWORD,
   },
+  connectionTimeout: 10000, // 10s
+  greetingTimeout: 10000, // 10s
+  socketTimeout: 10000, // 10s
 });
 
 export async function sendRecoveryEmail(email, code) {
   const mailOptions = {
-    from: `"UXTracks Soporte" <${process.env.EMAIL_USER || 'uxtracksoporte@gmail.com'}>`,
+    from: `"UXTracks Soporte" <${process.env.EMAIL_USER || "uxtracksoporte@gmail.com"}>`,
     to: email,
-    subject: 'Código de recuperación de contraseña - UXTracks',
+    subject: "Código de recuperación de contraseña - UXTracks",
     html: `
       <!DOCTYPE html>
       <html lang="es">
@@ -73,5 +79,13 @@ export async function sendRecoveryEmail(email, code) {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    console.log(`Intentando enviar correo de recuperación a: ${email}...`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Correo enviado exitosamente:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Error al enviar correo de recuperación:", error);
+    throw new Error(`Error en el servidor de correos: ${error.message}`);
+  }
 }

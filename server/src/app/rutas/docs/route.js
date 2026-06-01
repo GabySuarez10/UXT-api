@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { swaggerSpec } from "@/lib/swagger.js";
-import swaggerUi from "swagger-ui-express";    
+import swaggerUi from "swagger-ui-express";
 
 // Para devolver HTML con Swagger UI
 export async function GET() {

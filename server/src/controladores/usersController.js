@@ -161,4 +161,62 @@ export class UserController {
         "Si el correo existe, recibirás un código de verificación",
     };
   }
+
+  static async verificarCodigo(data) {
+    const { email, code } = data;
+
+    if (!email || !code) {
+      throw new Error("El correo y el código son obligatorios");
+    }
+
+    const usuario = await getUserByEmail(email);
+    if (!usuario) {
+      throw new Error("Código inválido o expirado");
+    }
+
+    // Verificar que el código coincide
+    if (usuario.codigo_recuperacion !== code) {
+      throw new Error("Código inválido o expirado");
+    }
+
+    // Verificar que no haya expirado
+    if (!usuario.codigo_expira || new Date() > new Date(usuario.codigo_expira)) {
+      await clearRecoveryCode(email);
+      throw new Error("El código ha expirado. Solicita uno nuevo.");
+    }
+
+    return { message: "Código verificado correctamente" };
+  }
+
+  static async restablecerContrasena(data) {
+    const { email, code, newPassword } = data;
+
+    if (!email || !code || !newPassword) {
+      throw new Error("Correo, código y nueva contraseña son obligatorios");
+    }
+
+    const usuario = await getUserByEmail(email);
+    if (!usuario) {
+      throw new Error("Código inválido o expirado");
+    }
+
+    // Re-verificar código y expiración
+    if (usuario.codigo_recuperacion !== code) {
+      throw new Error("Código inválido o expirado");
+    }
+
+    if (!usuario.codigo_expira || new Date() > new Date(usuario.codigo_expira)) {
+      await clearRecoveryCode(email);
+      throw new Error("El código ha expirado. Solicita uno nuevo.");
+    }
+
+    // Hash de la nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await updatePasswordByEmail(email, hashedPassword);
+
+    // Limpiar el código de recuperación ya usado
+    await clearRecoveryCode(email);
+
+    return { message: "Contraseña restablecida exitosamente" };
+  }
 }

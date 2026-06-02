@@ -7,11 +7,14 @@ const CHROME_PATH =
   process.env.CHROME_PATH ||
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 
+// Ancho estándar de captura — debe coincidir con el ancho del contenedor del heatmap en el frontend
+const CAPTURE_WIDTH = 1280;
+
 /**
  * POST /rutas/screenshot
  * Body: { url: string }
- * Captura un screenshot de la URL usando Puppeteer y lo guarda como snapshot.
- * Retorna { snapshot: "data:image/jpeg;base64,..." }
+ * Captura un screenshot completo (fullPage) de la URL usando Puppeteer.
+ * Retorna { snapshot, width, height }
  */
 export async function POST(req) {
   let browser;
@@ -42,23 +45,31 @@ export async function POST(req) {
     });
 
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 800 });
+    // Viewport fijo de 1280px — el mismo ancho que usa el contenedor del heatmap
+    await page.setViewport({ width: CAPTURE_WIDTH, height: 900, deviceScaleFactor: 1 });
 
-    // Ignorar errores de recursos (imágenes/fuentes fallidas no deben detener la captura)
+    // Ignorar errores de recursos (imágenes/fuentes fallidas no detienen la captura)
     page.on("requestfailed", () => {});
 
     await page.goto(url, {
       waitUntil: "networkidle2",
-      timeout: 20000,
+      timeout: 25000,
     });
 
-    // Espera breve para que termine de renderizar
-    await new Promise((r) => setTimeout(r, 1000));
+    // Espera breve para que termine de renderizar animaciones / fuentes
+    await new Promise((r) => setTimeout(r, 1200));
 
+    // Obtener dimensiones reales de la página completa
+    const dimensions = await page.evaluate(() => ({
+      width: document.documentElement.scrollWidth,
+      height: document.documentElement.scrollHeight,
+    }));
+
+    // Captura de página completa (fullPage: true) en JPEG comprimido
     const screenshotBuffer = await page.screenshot({
       type: "jpeg",
-      quality: 60,
-      fullPage: false,
+      quality: 65,
+      fullPage: true,
     });
 
     await browser.close();
@@ -68,12 +79,15 @@ export async function POST(req) {
     // Intentar guardar el snapshot en la BD (no es crítico si falla)
     try {
       await updateSitioSnapshot({ url, snapshot: base64 });
-      console.log(`Snapshot guardado en BD para: ${url}`);
+      console.log(`Snapshot guardado en BD para: ${url} (${dimensions.width}x${dimensions.height})`);
     } catch (dbErr) {
       console.warn("No se pudo guardar el snapshot en BD:", dbErr.message);
     }
 
-    return NextResponse.json({ snapshot: base64 }, { status: 200 });
+    return NextResponse.json(
+      { snapshot: base64, width: CAPTURE_WIDTH, height: dimensions.height },
+      { status: 200 }
+    );
   } catch (error) {
     if (browser) {
       try { await browser.close(); } catch (_) {}

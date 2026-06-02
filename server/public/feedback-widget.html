@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback Widget</title>
+  <style>
+    @keyframes uxt-slide-up {
+      from { opacity: 0; transform: translateY(20px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes uxt-slide-down {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(20px) scale(0.96); }
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      justify-content: right;
+      height: 100vh;
+      width: 100vw;
+    }
+    #uxt-feedback-card {
+      width: 340px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(14,44,64,.22), 0 2px 8px rgba(14,44,64,.10);
+      overflow: hidden;
+      animation: uxt-slide-up 0.4s cubic-bezier(.4,0,.2,1) both;
+      border: 1px solid rgba(20,141,141,.15);
+      margin: 10px;
+    }
+    #uxt-feedback-card.uxt-closing {
+      animation: uxt-slide-down 0.3s cubic-bezier(.4,0,.2,1) both;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    .uxt-fb-header {
+      background: linear-gradient(135deg, #0E2C40, #1A4A5A);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .uxt-fb-header-title {
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .uxt-fb-close {
+      background: rgba(255,255,255,.15);
+      border: none;
+      color: #ffffff;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      line-height: 1;
+    }
+    .uxt-fb-close:hover { background: rgba(255,255,255,.3); }
+    .uxt-fb-body { padding: 20px 18px 18px; }
+    .uxt-fb-question {
+      font-size: 15px;
+      font-weight: 600;
+      color: #0E2C40;
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+    .uxt-fb-options {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    .uxt-fb-option {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 6px;
+      border: 2px solid #e8edf0;
+      border-radius: 12px;
+      background: #f8fafa;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .uxt-fb-option:hover {
+      border-color: #148D8D;
+      background: rgba(20,141,141,.06);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(20,141,141,.12);
+    }
+    .uxt-fb-option.uxt-selected {
+      border-color: #148D8D;
+      background: rgba(20,141,141,.1);
+      box-shadow: 0 0 0 3px rgba(20,141,141,.15);
+    }
+    .uxt-fb-emoji { font-size: 28px; line-height: 1; }
+    .uxt-fb-label { font-size: 11px; font-weight: 700; color: #1A4A5A; text-align: center; }
+    .uxt-fb-comment-wrap {
+      margin-top: 14px;
+      animation: uxt-slide-up 0.3s cubic-bezier(.4,0,.2,1) both;
+    }
+    .uxt-fb-comment-label {
+      font-size: 12px;
+      color: #6b8795;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .uxt-fb-comment {
+      width: 100%;
+      min-height: 60px;
+      padding: 10px 12px;
+      border: 1.5px solid #d4dde3;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+      color: #0E2C40;
+      background: #f8fafa;
+    }
+    .uxt-fb-comment:focus { border-color: #148D8D; box-shadow: 0 0 0 3px rgba(20,141,141,.1); }
+    .uxt-fb-submit {
+      margin-top: 14px;
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, #148D8D, #1aabab);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .uxt-fb-submit:hover {
+      background: linear-gradient(135deg, #117a7a, #148D8D);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(20,141,141,.3);
+    }
+    .uxt-fb-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .uxt-fb-thanks {
+      text-align: center;
+      padding: 28px 18px;
+    }
+    .uxt-fb-thanks-emoji { font-size: 40px; margin-bottom: 10px; }
+    .uxt-fb-thanks-text { font-size: 15px; font-weight: 600; color: #0E2C40; }
+    .uxt-fb-thanks-sub { font-size: 12px; color: #6b8795; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div id="uxt-feedback-card">
+    <div class="uxt-fb-header">
+      <span class="uxt-fb-header-title">💬 Tu opinión importa</span>
+      <button class="uxt-fb-close" id="uxt-fb-close" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="uxt-fb-body">
+      <p class="uxt-fb-question" id="uxt-question-text">¿Qué tan satisfecho estás con tu visita?</p>
+      <div class="uxt-fb-options">
+        <button class="uxt-fb-option" data-value="satisfecho">
+          <span class="uxt-fb-emoji">😊</span>
+          <span class="uxt-fb-label">Satisfecho</span>
+        </button>
+        <button class="uxt-fb-option" data-value="neutral">
+          <span class="uxt-fb-emoji">😐</span>
+          <span class="uxt-fb-label">Neutral</span>
+        </button>
+        <button class="uxt-fb-option" data-value="insatisfecho">
+          <span class="uxt-fb-emoji">😞</span>
+          <span class="uxt-fb-label">Insatisfecho</span>
+        </button>
+      </div>
+      <div id="uxt-fb-comment-area"></div>
+      <button class="uxt-fb-submit" id="uxt-fb-submit" disabled>Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    // Parse query parameters
+    const params = new URLSearchParams(window.location.search);
+    const question = params.get('question') || '¿Qué tan satisfecho estás con tu visita?';
+    const sessionId = params.get('session_id') || '';
+    const pageUrl = params.get('url') || '';
+
+    // Set question text
+    document.getElementById('uxt-question-text').textContent = question;
+
+    var selectedValue = null;
+    var commentArea = document.getElementById('uxt-fb-comment-area');
+    var submitBtn = document.getElementById('uxt-fb-submit');
+    var options = document.querySelectorAll('.uxt-fb-option');
+    var card = document.getElementById('uxt-feedback-card');
+
+    // Option click handlers
+    options.forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        options.forEach(function (o) { o.classList.remove('uxt-selected'); });
+        opt.classList.add('uxt-selected');
+        selectedValue = opt.getAttribute('data-value');
+        submitBtn.disabled = false;
+
+        // Show comment field for neutral/insatisfecho
+        if (selectedValue === 'neutral' || selectedValue === 'insatisfecho') {
+          if (!commentArea.querySelector('.uxt-fb-comment-wrap')) {
+            commentArea.innerHTML = '\
+<div class="uxt-fb-comment-wrap">\
+  <p class="uxt-fb-comment-label">Cuéntanos más (opcional)</p>\
+  <textarea class="uxt-fb-comment" id="uxt-fb-comment-input" placeholder="Escribe tu comentario aquí..." maxlength="500"></textarea>\
+</div>';
+          }
+        } else {
+          commentArea.innerHTML = '';
+        }
+      });
+    });
+
+    // Close handler
+    document.getElementById('uxt-fb-close').addEventListener('click', function () {
+      closeWidget();
+    });
+
+    // Submit handler
+    submitBtn.addEventListener('click', function () {
+      if (!selectedValue) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+
+      var commentInput = document.getElementById('uxt-fb-comment-input');
+      var comment = commentInput ? commentInput.value.trim() : null;
+
+      var payload = {
+        event_type: question,
+        response: selectedValue,
+        comment: comment || null,
+        session_id: sessionId,
+        page_url: pageUrl
+      };
+
+      // Determine API URL relative to widget path
+      const feedbackApiUrl = window.location.origin + '/rutas/feedback';
+
+      fetch(feedbackApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function () {
+        showThanks();
+      }).catch(function (err) {
+        console.error('Error enviando feedback:', err);
+        showThanks();
+      });
+    });
+
+    function showThanks() {
+      var body = document.querySelector('.uxt-fb-body');
+      body.innerHTML = '\
+<div class="uxt-fb-thanks">\
+  <div class="uxt-fb-thanks-emoji">🎉</div>\
+  <p class="uxt-fb-thanks-text">¡Gracias por tu opinión!</p>\
+  <p class="uxt-fb-thanks-sub">Tu feedback nos ayuda a mejorar</p>\
+</div>';
+      setTimeout(function () {
+        closeWidget();
+      }, 2200);
+    }
+
+    function closeWidget() {
+      card.classList.add('uxt-closing');
+      setTimeout(function () {
+        // Send postMessage to parent to remove iframe
+        window.parent.postMessage('close-uxt-feedback', '*');
+      }, 300);
+    }
+  </script>
+</body>
+</html>

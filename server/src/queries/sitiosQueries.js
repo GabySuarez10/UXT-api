@@ -97,3 +97,39 @@ export async function deleteSitioPorUrl(url) {
     throw error;
   }
 }
+
+export async function updateSitioSnapshot({ url, snapshot }) {
+  try {
+    const result = await pool.query(
+      `UPDATE sitios
+       SET snapshot = $2
+       WHERE url = $1 OR TRIM(TRAILING '/' FROM url) = TRIM(TRAILING '/' FROM $1)
+       RETURNING *`,
+      [url, snapshot],
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error(`No se encontró un sitio con URL: ${url}`);
+    }
+
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error en updateSitioSnapshot:", error);
+    throw error;
+  }
+}
+
+export async function getSitioSnapshot(url) {
+  try {
+    const result = await pool.query(
+      `SELECT snapshot FROM sitios 
+       WHERE url = $1 OR TRIM(TRAILING '/' FROM url) = TRIM(TRAILING '/' FROM $1)
+       LIMIT 1`,
+      [url]
+    );
+    return result.rows[0]?.snapshot || null;
+  } catch (error) {
+    console.error("Error en getSitioSnapshot:", error);
+    throw error;
+  }
+}

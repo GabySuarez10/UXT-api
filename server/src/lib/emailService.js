@@ -1,3 +1,8 @@
+console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log(
+  "EMAIL_PASSWORD existe:",
+  !!process.env.EMAIL_PASSWORD
+);
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({

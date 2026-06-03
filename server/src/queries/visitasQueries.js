@@ -287,14 +287,14 @@ export async function getClics(url = null) {
 
 export async function createClic(data) {
   try {
-    const { uid, url, dominio, elemento, posicion_x, posicion_y, timestamp } =
+    const { uid, url, dominio, elemento, posicion_x, posicion_y, timestamp, viewport_width, viewport_height } =
       data;
     const result = await pool.query(
       `INSERT INTO clics 
-       (uid, url, dominio, elemento, posicion_x, posicion_y, timestamp)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       (uid, url, dominio, elemento, posicion_x, posicion_y, timestamp, viewport_width, viewport_height)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [uid, url, dominio, elemento, posicion_x, posicion_y, timestamp],
+      [uid, url, dominio, elemento, posicion_x, posicion_y, timestamp, viewport_width || null, viewport_height || null],
     );
     return result.rows[0];
   } catch (error) {

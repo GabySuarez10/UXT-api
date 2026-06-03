@@ -9,6 +9,8 @@ export class Clic {
     posicion_y,
     timestamp,
     created_at,
+    viewport_width,
+    viewport_height,
   ) {
     this.id = id;
     this.uid = uid;
@@ -19,6 +21,8 @@ export class Clic {
     this.posicion_y = posicion_y;
     this.timestamp = timestamp;
     this.created_at = created_at;
+    this.viewport_width = viewport_width;
+    this.viewport_height = viewport_height;
   }
 
   toJSON() {
@@ -32,6 +36,8 @@ export class Clic {
       posicion_y: this.posicion_y,
       timestamp: this.timestamp,
       created_at: this.created_at,
+      viewport_width: this.viewport_width,
+      viewport_height: this.viewport_height,
     };
   }
 }

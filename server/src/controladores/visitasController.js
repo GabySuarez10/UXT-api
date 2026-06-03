@@ -30,6 +30,8 @@ export class VisitasController {
             c.posicion_y,
             c.timestamp,
             c.created_at,
+            c.viewport_width,
+            c.viewport_height,
           ),
       );
     }
@@ -145,7 +147,7 @@ export class VisitasController {
 
   // Registrar un clic
   static async registrarClic(data) {
-    const { uid, url, dominio, elemento, posicion_x, posicion_y, timestamp } =
+    const { uid, url, dominio, elemento, posicion_x, posicion_y, timestamp, viewport_width, viewport_height } =
       data;
 
     if (!uid || !url)
@@ -163,6 +165,8 @@ export class VisitasController {
       posicion_x: posicion_x ?? 0,
       posicion_y: posicion_y ?? 0,
       timestamp: timestamp || new Date().toISOString(),
+      viewport_width: viewport_width || null,
+      viewport_height: viewport_height || null,
     });
 
     return new Clic(
@@ -175,6 +179,8 @@ export class VisitasController {
       nuevoClic.posicion_y,
       nuevoClic.timestamp,
       nuevoClic.created_at,
+      nuevoClic.viewport_width,
+      nuevoClic.viewport_height,
     );
   }
 

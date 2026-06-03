@@ -6,27 +6,17 @@ const pool = new Pool({
 
 async function check() {
   try {
-    const clics = await pool.query(
-      "SELECT url, count(*) FROM clics GROUP BY url",
+    console.log("Running migration...");
+    await pool.query(
+      "ALTER TABLE clics ADD COLUMN IF NOT EXISTS viewport_width INTEGER, ADD COLUMN IF NOT EXISTS viewport_height INTEGER"
     );
-    console.log("CLICS BY URL:");
-    console.table(clics.rows);
+    console.log("Migration finished successfully!");
 
-    const scrolls = await pool.query(
-      "SELECT url, count(*) FROM scrolls GROUP BY url",
+    const clicsColumns = await pool.query(
+      "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'clics'"
     );
-    console.log("SCROLLS BY URL:");
-    console.table(scrolls.rows);
-
-    const stats_query = `
-      SELECT 
-        (SELECT COUNT(*) FROM clics) as total_clics,
-        (SELECT COUNT(*) FROM scrolls) as total_scrolls,
-        (SELECT COUNT(*) FROM visitas) as total_visitas
-    `;
-    const stats = await pool.query(stats_query);
-    console.log("GENERAL STATS:");
-    console.table(stats.rows);
+    console.log("CLICS COLUMNS:");
+    console.table(clicsColumns.rows);
   } catch (err) {
     console.error(err);
   } finally {

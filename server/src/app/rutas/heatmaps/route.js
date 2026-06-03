@@ -33,6 +33,7 @@
 
 import { NextResponse } from "next/server";
 import { getClics, getScrolls } from "@/queries/visitasQueries";
+import { getSitioSnapshot } from "@/queries/sitiosQueries";
 
 export async function GET(request) {
   try {
@@ -50,8 +51,9 @@ export async function GET(request) {
 
     const clics = await getClics(url);
     const scrolls = await getScrolls(url);
+    const snapshot = await getSitioSnapshot(url);
 
-    return NextResponse.json({ clics, scrolls, snapshot: null });
+    return NextResponse.json({ clics, scrolls, snapshot });
   } catch (error) {
     console.error("Error en GET /heatmaps:", error);
     return NextResponse.json(

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { updateSitioSnapshot } from "@/queries/sitiosQueries.js";
 
 // Ruta al ejecutable de Chrome instalado
@@ -28,16 +29,10 @@ export async function POST(req) {
     console.log(`POST /rutas/screenshot - Capturando: ${url}`);
 
     browser = await puppeteer.launch({
-
-      headless: true,
-
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu"
-      ]
-
+      args: chromium.args,
+      defaultViewport: { width: CAPTURE_WIDTH, height: 900 },
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();

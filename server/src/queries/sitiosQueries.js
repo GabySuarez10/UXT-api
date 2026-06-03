@@ -98,38 +98,90 @@ export async function deleteSitioPorUrl(url) {
   }
 }
 
-export async function updateSitioSnapshot({ url, snapshot }) {
+export async function updateSitioSnapshot({
+  url,
+  snapshot,
+  snapshot_width,
+  snapshot_height
+}) {
+
   try {
+
     const result = await pool.query(
+
       `UPDATE sitios
-       SET snapshot = $2
-       WHERE url = $1 OR TRIM(TRAILING '/' FROM url) = TRIM(TRAILING '/' FROM $1)
+       SET
+         snapshot = $2,
+         snapshot_width = $3,
+         snapshot_height = $4
+       WHERE url = $1
+       OR TRIM(TRAILING '/' FROM url) =
+          TRIM(TRAILING '/' FROM $1)
        RETURNING *`,
-      [url, snapshot],
+
+      [
+        url,
+        snapshot,
+        snapshot_width || 1280,
+        snapshot_height || 4000
+      ]
+
     );
 
     if (result.rows.length === 0) {
-      throw new Error(`No se encontró un sitio con URL: ${url}`);
+
+      throw new Error(
+        `No se encontró un sitio con URL: ${url}`
+      );
+
     }
 
     return result.rows[0];
+
   } catch (error) {
-    console.error("Error en updateSitioSnapshot:", error);
+
+    console.error(
+      "Error en updateSitioSnapshot:",
+      error
+    );
+
     throw error;
+
   }
+
 }
 
 export async function getSitioSnapshot(url) {
+
   try {
+
     const result = await pool.query(
-      `SELECT snapshot FROM sitios 
-       WHERE url = $1 OR TRIM(TRAILING '/' FROM url) = TRIM(TRAILING '/' FROM $1)
+
+      `SELECT
+          snapshot,
+          snapshot_width,
+          snapshot_height
+       FROM sitios
+       WHERE url = $1
+       OR TRIM(TRAILING '/' FROM url) =
+          TRIM(TRAILING '/' FROM $1)
        LIMIT 1`,
+
       [url]
+
     );
-    return result.rows[0]?.snapshot || null;
+
+    return result.rows[0] || null;
+
   } catch (error) {
-    console.error("Error en getSitioSnapshot:", error);
+
+    console.error(
+      "Error en getSitioSnapshot:",
+      error
+    );
+
     throw error;
+
   }
+
 }

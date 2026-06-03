@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer";
 import { updateSitioSnapshot } from "@/queries/sitiosQueries.js";
 
 // Ruta al ejecutable de Chrome instalado
-const CHROME_PATH =
-  process.env.CHROME_PATH ||
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 
 // Ancho estándar de captura — debe coincidir con el ancho del contenedor del heatmap en el frontend
 const CAPTURE_WIDTH = 1280;
@@ -31,17 +28,16 @@ export async function POST(req) {
     console.log(`POST /rutas/screenshot - Capturando: ${url}`);
 
     browser = await puppeteer.launch({
-      executablePath: CHROME_PATH,
+
       headless: true,
+
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-first-run",
-        "--no-zygote",
-        "--disable-extensions",
-      ],
+        "--disable-gpu"
+      ]
+
     });
 
     const page = await browser.newPage();
@@ -49,7 +45,7 @@ export async function POST(req) {
     await page.setViewport({ width: CAPTURE_WIDTH, height: 900, deviceScaleFactor: 1 });
 
     // Ignorar errores de recursos (imágenes/fuentes fallidas no detienen la captura)
-    page.on("requestfailed", () => {});
+    page.on("requestfailed", () => { });
 
     await page.goto(url, {
       waitUntil: "networkidle2",
@@ -90,7 +86,7 @@ export async function POST(req) {
     );
   } catch (error) {
     if (browser) {
-      try { await browser.close(); } catch (_) {}
+      try { await browser.close(); } catch (_) { }
     }
     console.error("Error en POST /rutas/screenshot:", error);
     return NextResponse.json(

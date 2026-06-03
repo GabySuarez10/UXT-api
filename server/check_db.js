@@ -13,7 +13,7 @@ async function check() {
     console.log("Migration finished successfully!");
 
     const clicsColumns = await pool.query(
-      "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'clics'"
+      "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'sitios'"
     );
     console.log("CLICS COLUMNS:");
     console.table(clicsColumns.rows);

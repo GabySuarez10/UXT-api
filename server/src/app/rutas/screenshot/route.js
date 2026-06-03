@@ -53,8 +53,8 @@ export async function POST(request) {
     const result = await updateSitioSnapshot({
       url,
       snapshot: screenshotUrl,
-      snapshot_width,
-      snapshot_height
+      snapshot_width: screenshot_width,
+      snapshot_height: screenshot_height
     });
 
     return NextResponse.json({

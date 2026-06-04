@@ -20,8 +20,8 @@ function getTransporter() {
 
   transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,
     auth: { user, pass },
     connectionTimeout: 15000,
     greetingTimeout: 15000,
@@ -63,4 +63,20 @@ export async function sendRecoveryEmail(email, code) {
 
     throw new Error("Error enviando correo de recuperacion");
   }
+  function getEmailConfig() {
+  const user = process.env.EMAIL_USER?.trim();
+  const pass = process.env.EMAIL_PASSWORD?.replace(/\s/g, "");
+
+  // 👇 Agrega esto temporalmente para debuggear en Render
+  console.log("EMAIL_USER length:", user?.length);
+  console.log("EMAIL_USER value:", user);
+  console.log("EMAIL_PASSWORD length:", pass?.length);
+  console.log("EMAIL_PASSWORD primeros 4 chars:", pass?.substring(0, 4));
+
+  if (!user || !pass) {
+    throw new Error("Faltan variables EMAIL_USER o EMAIL_PASSWORD");
+  }
+
+  return { user, pass };
+}
 }

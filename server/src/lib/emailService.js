@@ -1,52 +1,66 @@
 import nodemailer from "nodemailer";
 
-// ❌ SOLO LOCAL
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config({ path: "./.env.local" });
+let transporter;
+
+function getEmailConfig() {
+  const user = process.env.EMAIL_USER?.trim();
+  const pass = process.env.EMAIL_PASSWORD?.replace(/\s/g, "");
+
+  if (!user || !pass) {
+    throw new Error("Faltan variables EMAIL_USER o EMAIL_PASSWORD");
+  }
+
+  return { user, pass };
 }
 
-// 🔐 Validación fuerte
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-  throw new Error("Faltan variables EMAIL_USER o EMAIL_PASSWORD");
-}
+function getTransporter() {
+  if (transporter) return transporter;
 
-// 🚀 Transporter estable para Gmail en producción
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD?.trim(),
-  },
-});
+  const { user, pass } = getEmailConfig();
+
+  transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: { user, pass },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
+  });
+
+  return transporter;
+}
 
 export async function sendRecoveryEmail(email, code) {
   try {
-    console.log("📨 Enviando correo a:", email);
+    const { user } = getEmailConfig();
+    const mailer = getTransporter();
 
-    const info = await transporter.sendMail({
-      from: `"UXTracks" <${process.env.EMAIL_USER}>`,
+    console.log("Enviando correo de recuperacion a:", email);
+
+    const info = await mailer.sendMail({
+      from: `"UXTracks" <${user}>`,
       to: email,
-      subject: "Código de recuperación de contraseña",
+      subject: "Codigo de recuperacion de contrasena",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2>Recuperación de contraseña</h2>
-          <p>Tu código de verificación es:</p>
+          <h2>Recuperacion de contrasena</h2>
+          <p>Tu codigo de verificacion es:</p>
           <h1 style="letter-spacing: 8px; font-size: 32px;">${code}</h1>
-          <p>Este código expira en 15 minutos.</p>
+          <p>Este codigo expira en 15 minutos.</p>
         </div>
       `,
     });
 
-    console.log("✅ Email enviado:", info.messageId);
+    console.log("Email de recuperacion enviado:", info.messageId);
     return info;
   } catch (error) {
-    console.error("🔥 ERROR EN ENVÍO DE EMAIL:");
+    console.error("ERROR EN ENVIO DE EMAIL:");
     console.error(error);
     console.error("CODE:", error.code);
     console.error("RESPONSE:", error.response);
+    console.error("COMMAND:", error.command);
 
-    throw new Error("Error enviando correo de recuperación");
+    throw new Error("Error enviando correo de recuperacion");
   }
 }

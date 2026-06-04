@@ -23,6 +23,8 @@
 import { NextResponse } from "next/server";
 import { UserController } from "@/controladores/usersController";
 
+export const runtime = "nodejs";
+
 export async function POST(req) {
   try {
     const data = await req.json();

@@ -1,9 +1,9 @@
-import nodemailer from "nodemailer";
-import { MailtrapTransport } from "mailtrap";
+const { MailtrapTransport } = require("mailtrap");
+const nodemailer = require("nodemailer");
 
 const transport = nodemailer.createTransport(
   MailtrapTransport({
-    token: process.env.MAILTRAP_API_KEY,
+    token: process.env.MAILTRAP_TOKEN,
   })
 );
 
@@ -12,13 +12,13 @@ const sender = {
   name: "UXTracks",
 };
 
-export async function sendRecoveryEmail(email, code) {
+async function sendRecoveryEmail(email, code) {
   try {
     console.log("Enviando correo a:", email);
 
     const info = await transport.sendMail({
       from: sender,
-      to: email,
+      to: [email],
       subject: "Código de recuperación - UXTracks",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -38,3 +38,5 @@ export async function sendRecoveryEmail(email, code) {
     throw new Error("Error enviando correo de recuperacion");
   }
 }
+
+module.exports = { sendRecoveryEmail };

@@ -10,7 +10,7 @@ import {
   updatePasswordByEmail,
 } from "@/queries/userQueries";
 import { User } from "@/clases/user";
-const { sendRecoveryEmail } = require("../emailService.js");
+const { sendRecoveryEmail } = require("../lib/emailService.js");
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import crypto from "crypto";

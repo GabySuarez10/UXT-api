@@ -1,15 +1,25 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
+import { MailtrapTransport } from "mailtrap";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transport = nodemailer.createTransport(
+  MailtrapTransport({
+    token: process.env.MAILTRAP_API_KEY,
+  })
+);
+
+const sender = {
+  address: "hello@demomailtrap.co",
+  name: "UXTracks",
+};
 
 export async function sendRecoveryEmail(email, code) {
   try {
-    console.log("Enviando correo de recuperacion a:", email);
+    console.log("Enviando correo a:", email);
 
-    const { data, error } = await resend.emails.send({
-      from: "UXTracks <onboarding@resend.dev>", // 👈 este funciona sin dominio propio
+    const info = await transport.sendMail({
+      from: sender,
       to: email,
-      subject: "Código de recuperación de contraseña",
+      subject: "Código de recuperación - UXTracks",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Recuperación de contraseña</h2>
@@ -20,13 +30,8 @@ export async function sendRecoveryEmail(email, code) {
       `,
     });
 
-    if (error) {
-      console.error("Error Resend:", error);
-      throw new Error(error.message);
-    }
-
-    console.log("Email enviado:", data?.id);
-    return data;
+    console.log("Email enviado:", info.messageId);
+    return info;
 
   } catch (error) {
     console.error("ERROR EN ENVIO DE EMAIL:", error);

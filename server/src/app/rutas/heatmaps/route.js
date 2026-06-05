@@ -33,6 +33,7 @@
 
 import { NextResponse } from "next/server";
 import { getClics, getScrolls } from "@/queries/visitasQueries";
+import pool from "@/lib/db";
 
 export async function GET(request) {
   try {
@@ -48,10 +49,18 @@ export async function GET(request) {
 
     console.log(`GET /heatmaps - URL filter: ${url}`);
 
-    const clics = await getClics(url);
-    const scrolls = await getScrolls(url);
+    const [clics, scrolls, snapshotResult] = await Promise.all([
+      getClics(url),
+      getScrolls(url),
+      pool.query(
+        "SELECT snapshot, width, height FROM sitios_capturas WHERE url = $1",
+        [url]
+      ),
+    ]);
 
-    return NextResponse.json({ clics, scrolls, snapshot: null });
+    const snapshot = snapshotResult.rows.length > 0 ? snapshotResult.rows[0] : null;
+
+    return NextResponse.json({ clics, scrolls, snapshot });
   } catch (error) {
     console.error("Error en GET /heatmaps:", error);
     return NextResponse.json(

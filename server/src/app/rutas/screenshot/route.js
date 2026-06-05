@@ -116,7 +116,6 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const file = searchParams.get("file");
 
-    // Validar parámetro (prevenir path traversal)
     if (!file || /[/\\]|\.\./.test(file)) {
       return NextResponse.json(
         { error: "Parámetro 'file' inválido" },
@@ -202,7 +201,6 @@ export async function POST(request) {
     // ═══════════════════════════════
     console.log(`Screenshot CACHE MISS: generando para ${url}`);
 
-    // Asegurar directorio (por si se eliminó en runtime)
     if (!existsSync(SCREENSHOTS_DIR)) {
       mkdirSync(SCREENSHOTS_DIR, { recursive: true });
     }
@@ -210,7 +208,6 @@ export async function POST(request) {
     let browser;
 
     try {
-      // Producción: usar @sparticuz/chromium (ligero, optimizado para cloud)
       const chromium = (await import("@sparticuz/chromium")).default;
       const puppeteerCore = (await import("puppeteer-core")).default;
       const { addExtra } = await import("puppeteer-extra");
@@ -226,7 +223,6 @@ export async function POST(request) {
         headless: true,
       });
     } catch {
-      // Desarrollo local: usar Chrome del sistema operativo
       const puppeteerCore = (await import("puppeteer-core")).default;
       const { addExtra } = await import("puppeteer-extra");
       const StealthPlugin = (await import("puppeteer-extra-plugin-stealth")).default;
@@ -260,43 +256,38 @@ export async function POST(request) {
     try {
       const page = await browser.newPage();
 
-      // Configurar un User-Agent de navegador real para evitar bloqueos de seguridad (ej. Wordfence en WordPress)
       await page.setUserAgent(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
       );
       
-      // Configurar cabeceras extra para simular mejor un navegador humano
       await page.setExtraHTTPHeaders({
         "Accept-Language": "es-ES,es;q=0.9,en;q=0.8,en-US;q=0.7",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"
       });
 
-      // Opcional: intentar evitar algunos bloqueos estrictos de CSP
       await page.setBypassCSP(true);
 
-      // Navegar a la URL y esperar carga
       await page.goto(url, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
       });
 
-      // Dar tiempo extra (5 segundos) para que cualquier desafío de cookies (ej. iFastNet/InfinityFree) 
-      // o redirecciones JS se completen antes de tomar la captura.
-      await new Promise(r => setTimeout(r, 5000));
+      // Dar tiempo para que el JS anti-bots inicie la redirección
+      await new Promise(r => setTimeout(r, 3000));
+      
+      // Esperar a que la página final termine de cargar sus recursos
+      await page.waitForNetworkIdle({ idleTime: 1000, timeout: 30000 }).catch(() => {});
 
-      // Obtener dimensiones reales de la página completa
       const dimensions = await page.evaluate(() => ({
         width: document.documentElement.scrollWidth,
         height: document.documentElement.scrollHeight,
       }));
 
-      // Capturar screenshot full-page
       await page.screenshot({
         path: filePath,
         fullPage: true,
       });
 
-      // Guardar metadata para futuras consultas de cache
       writeFileSync(
         metaPath,
         JSON.stringify({

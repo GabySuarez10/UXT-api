@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 
+// Aumentar límite de body para aceptar imágenes base64 grandes
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
 export async function POST(request) {
   try {
     const { url, snapshot, width, height } = await request.json();

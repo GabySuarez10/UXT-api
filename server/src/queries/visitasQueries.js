@@ -189,12 +189,45 @@ export async function getEstadisticasDashboard(
       10,
     );
 
+    // ── Average time on page: AVG of (MAX - MIN) created_at per uid ──
+    const queryAvgTime = `
+      WITH eventos AS (
+        SELECT uid, created_at FROM clics WHERE url = $1${clicDateFilter}
+        UNION ALL
+        SELECT uid, created_at FROM scrolls WHERE url = $1${scrollDateFilter}
+        UNION ALL
+        SELECT uid, ultimavisita as created_at FROM visitas WHERE url = $1${visitaDateFilter}
+        UNION ALL
+        SELECT uid, created_at FROM visitas WHERE url = $1${visitaDateFilter}
+      ),
+      sesiones AS (
+        SELECT 
+          uid, 
+          MIN(created_at) as primer_evento, 
+          MAX(created_at) as ultimo_evento
+        FROM eventos
+        GROUP BY uid
+      ),
+      tiempos AS (
+        SELECT 
+          EXTRACT(EPOCH FROM (ultimo_evento - primer_evento)) as tiempo_segundos
+        FROM sesiones
+        WHERE EXTRACT(EPOCH FROM (ultimo_evento - primer_evento)) > 0
+      )
+      SELECT COALESCE(ROUND(AVG(tiempo_segundos)), 0) as avg_time
+      FROM tiempos
+    `;
+    // We can use visitaParams because the lengths and contents of all three arrays are identical for $1, $2, $3
+    const avgTimeRes = await pool.query(queryAvgTime, visitaParams);
+    const tiempoPromedio = parseInt(avgTimeRes.rows[0]?.avg_time || 0, 10);
+
     return {
       visitas: parseInt(visitasRes.rows[0]?.total_visitas || 0, 10),
       recurrentes: parseInt(visitasRes.rows[0]?.visitas_recurrentes || 0, 10),
       clics: parseInt(clicsRes.rows[0]?.total_clics || 0, 10),
       scrolls: parseInt(scrollsRes.rows[0]?.total_scrolls || 0, 10),
       porcentajeScroll,
+      tiempoPromedio,
     };
   } catch (error) {
     console.error("Error en getEstadisticasDashboard:", error);
